@@ -1,2 +1,1 @@
-# coursera1
-coursera repository
+Fitness dashboard
