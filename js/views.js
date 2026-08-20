@@ -262,7 +262,9 @@ Views.assistant = function () {
       <h1>Assistant</h1>
       <p>${claude
         ? 'Running on Claude with access to your profile, plan and log — it can make changes for you, not just describe them.'
-        : 'Guided mode: works offline, no API key. Add a key in Settings for full conversation.'}</p>
+        : HOSTED
+          ? 'Guided mode. The conversational assistant needs the local copy of Fuel — a published page cannot call outside services. Everything else works here.'
+          : 'Guided mode: works offline, no API key. Add a key in Settings for full conversation.'}</p>
     </div>
     <div class="head-actions">
       ${s.targets ? '<button class="ghost small" data-action="recalculate">Recalculate</button>' : ''}
@@ -916,16 +918,18 @@ Views.profileMount = function () {
 
 Views.settings = function () {
   const c = Store.state.settings;
-  const size = (() => {
-    try { return Math.round((localStorage.getItem(STORAGE_KEY) || '').length / 1024); } catch (e) { return 0; }
-  })();
+  const size = Math.round((Storage.get(STORAGE_KEY) || '').length / 1024);
 
   return `
   <div class="page-head">
     <div><h1>Settings</h1><p>Your data never leaves this laptop unless you turn on Claude mode or export it yourself.</p></div>
   </div>
 
-  <div class="card">
+  ${HOSTED ? `<div class="card">
+    <div class="card-head"><h2>Claude mode <span class="tag">not available here</span></h2></div>
+    <p class="muted">You're using the published web version. A published page isn't allowed to call outside services, so the conversational assistant only runs in the local copy of Fuel that you open from your own machine.</p>
+    <p class="muted">Everything else is identical: guided setup, all the calculations, the meal plan, the log, workouts and the shopping list.</p>
+  </div>` : `<div class="card">
     <div class="card-head"><h2>Claude mode <span class="tag ${c.apiKey ? 'good' : ''}">${c.apiKey ? 'on' : 'off'}</span></h2></div>
     <p class="muted">Guided mode does the maths, plans and lists without any connection. Add an Anthropic API key and the assistant becomes a real conversation that can also change your plan, log your food and rebuild your shop.</p>
     <div class="field">
@@ -961,11 +965,12 @@ Views.settings = function () {
       <input data-setting="baseUrl" value="${escapeHtml(c.baseUrl || '')}" placeholder="https://api.anthropic.com">
       <div class="hint">Only change this if you are routing through your own proxy.</div>
     </div>
-  </div>
+  </div>`}
 
   <div class="card">
-    <div class="card-head"><h2>Your data</h2><small class="muted">${size} KB stored</small></div>
-    <p class="muted">Everything — profile, log, plans, chat — lives in this browser's storage. Clearing site data or "clear browsing history including cookies" will wipe it, so export a backup now and then.</p>
+    <div class="card-head"><h2>Your data</h2><small class="muted">${Storage.available ? size + ' KB stored' : 'storage blocked'}</small></div>
+    ${Storage.available ? '' : '<div class="callout warn" style="margin-bottom:10px">This browser is blocking storage for this page, so nothing you enter will survive a reload. Everything still works for now — export a backup before you close the tab.</div>'}
+    <p class="muted">Everything — profile, log, plans, chat — lives in this browser's storage${HOSTED ? ', separately from any copy you run on your own machine' : ''}. Clearing site data or "clear browsing history including cookies" will wipe it, so export a backup now and then.</p>
     <div class="row wrap">
       <button class="secondary" data-action="export">Export backup (.json)</button>
       <button class="secondary" data-action="import">Import backup</button>

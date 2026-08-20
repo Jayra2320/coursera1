@@ -93,7 +93,38 @@ const fmtKcal = (n) => Math.round(n).toLocaleString('en-AU');
 const fmtG = (n) => Math.round(n) + 'g';
 const money = (n) => '$' + n.toFixed(2);
 
-function download(filename, text, type) {
+/* True when the app is running as a published Claude Artifact rather than from
+   a local file. The two differ in what the page is allowed to do. */
+const HOSTED = typeof window !== 'undefined' && !!(window.claude && typeof window.claude.use === 'function');
+
+/* Save a file. Locally that is an anchor click; on a hosted page anchor
+   downloads are inert, so the viewer is offered the file through the host and
+   can decline. */
+async function download(filename, text, type) {
+  if (HOSTED) {
+    try {
+      const downloads = await window.claude.use('downloads');
+      if (downloads) {
+        try {
+          await downloads.save({ filename, data: text });
+        } catch (err) {
+          /* CSV is not always enabled — plain text always is. */
+          if (err && err.code === 'extension_not_enabled' && /\.csv$/.test(filename)) {
+            await downloads.save({ filename: filename.replace(/\.csv$/, '.txt'), data: text });
+          } else if (err && err.code === 'declined') {
+            return false;
+          } else {
+            throw err;
+          }
+        }
+        return true;
+      }
+    } catch (err) {
+      toast(err && err.message ? 'Could not save: ' + err.message : 'Could not save that file.');
+      return false;
+    }
+  }
+
   const blob = new Blob([text], { type: type || 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -103,6 +134,7 @@ function download(filename, text, type) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
 }
 
 function toast(msg) {

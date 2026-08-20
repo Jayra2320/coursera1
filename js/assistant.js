@@ -344,7 +344,11 @@ const Assistant = {
    * Claude mode
    * ===================================================================== */
 
+  /* A published page cannot reach api.anthropic.com — the artifact sandbox
+     blocks requests to other hosts — so Claude mode is local-copy only.
+     Guided mode is unaffected and does everything the app needs. */
   hasKey() {
+    if (HOSTED) return false;
     return !!(Store.state.settings.apiKey || '').trim();
   },
 

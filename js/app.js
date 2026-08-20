@@ -20,10 +20,17 @@ function go(view) {
 
 /* ---------------------------- theme ---------------------------- */
 
-function applyTheme() {
+/* The viewer's own theme choice arrives as a data-theme stamp on <html> from
+   whatever is hosting the page. Setting the app's theme explicitly overrides
+   it; going back to "auto" hands control back — but only if the user asked
+   for auto, so a host stamp survives an ordinary page load. */
+function applyTheme(userChose) {
   const t = Store.state.settings.theme || 'auto';
-  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
-  else document.documentElement.setAttribute('data-theme', t);
+  if (t === 'auto') {
+    if (userChose) document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', t);
+  }
 }
 
 /* ---------------------------- modal ---------------------------- */
@@ -327,14 +334,13 @@ const Actions = {
     });
   },
 
-  export() {
-    download(`fuel-backup-${todayISO()}.json`, Store.exportJSON());
-    toast('Backup downloaded.');
+  async export() {
+    if (await download(`fuel-backup-${todayISO()}.json`, Store.exportJSON())) toast('Backup saved.');
   },
 
   import() { $('#importFile').click(); },
 
-  'export-log'() {
+  async 'export-log'() {
     const rows = [['date', 'meal', 'item', 'kcal', 'protein_g', 'carbs_g', 'fat_g', 'fibre_g']];
     Object.keys(Store.state.log).sort().forEach((date) => {
       Store.state.log[date].forEach((e) => {
@@ -342,7 +348,7 @@ const Actions = {
       });
     });
     const csv = rows.map((r) => r.map((c) => (/[",\n]/.test(String(c)) ? `"${c}"` : c)).join(',')).join('\n');
-    download(`fuel-log-${todayISO()}.csv`, csv, 'text/csv');
+    if (await download(`fuel-log-${todayISO()}.csv`, csv, 'text/csv')) toast('Food log saved.');
   },
 
   reset() {
@@ -384,7 +390,7 @@ $('#themeToggle').addEventListener('click', () => {
   Store.mutate((s) => {
     s.settings.theme = order[(order.indexOf(s.settings.theme || 'auto') + 1) % 3];
   }, { render: false });
-  applyTheme();
+  applyTheme(true);
   toast('Theme: ' + Store.state.settings.theme);
 });
 

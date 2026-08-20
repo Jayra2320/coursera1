@@ -12,6 +12,8 @@ Plus a weekly meal plan and a training split built around the same numbers, beca
 
 ---
 
+**Hosted copy:** <https://claude.ai/code/artifact/0d88eaf5-469d-4cb6-8da8-2c9ac1f7dd19> — private to you, opens on any device including your phone. It keeps its own saved data, separate from the local copy, and the conversational assistant is local-only (see below).
+
 ## Getting started
 
 ```
@@ -118,6 +120,13 @@ js/app.js           routing, event delegation, boot
 ```
 
 Plain scripts, no modules and no bundler — so it works over `file://` with nothing running. Files load in the order listed in `index.html`.
+
+`node build.js` is optional and only for distribution. It inlines everything into `dist/fuel.html` (a complete standalone document you can email or carry on a USB stick) and `dist/fuel.artifact.html` (the same page as a fragment, for publishing as a hosted Artifact).
+
+### The hosted copy differs in two ways
+
+- **Claude mode does not run there.** A published page is not allowed to call outside services, so it cannot reach the Anthropic API. Guided mode, every calculation, the plan, the log, workouts and the shopping list all work normally. The Settings screen says so rather than offering a key field that could not work.
+- **Exports go through the host.** A published page cannot start a download itself, so the app asks the viewer to confirm the save. Locally it just downloads.
 
 ### Adding your own foods and recipes
 

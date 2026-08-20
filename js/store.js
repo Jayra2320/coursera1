@@ -4,6 +4,44 @@
 
 const STORAGE_KEY = 'fuel.state.v1';
 
+/* Browser storage is not always there: private windows, blocked cookies and
+   sandboxed frames can all make localStorage throw on access. The app stays
+   fully usable in that case — it just cannot remember anything between
+   reloads, and says so once rather than failing on every keystroke. */
+const Storage = (function () {
+  let backing = null;
+  try {
+    const probe = '__fuel_probe__';
+    window.localStorage.setItem(probe, '1');
+    window.localStorage.removeItem(probe);
+    backing = window.localStorage;
+  } catch (err) {
+    backing = null;
+  }
+
+  const memory = {};
+  return {
+    available: !!backing,
+    get(key) {
+      try { return backing ? backing.getItem(key) : (key in memory ? memory[key] : null); }
+      catch (err) { return null; }
+    },
+    set(key, value) {
+      try {
+        if (backing) backing.setItem(key, value); else memory[key] = value;
+        return true;
+      } catch (err) {
+        memory[key] = value;
+        return false;
+      }
+    },
+    remove(key) {
+      try { if (backing) backing.removeItem(key); } catch (err) { /* nothing to undo */ }
+      delete memory[key];
+    }
+  };
+})();
+
 const DEFAULT_STATE = {
   version: 1,
   profile: {
@@ -65,7 +103,7 @@ const Store = {
   load() {
     let saved = null;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = Storage.get(STORAGE_KEY);
       if (raw) saved = JSON.parse(raw);
     } catch (err) {
       console.warn('Could not read saved data:', err);
@@ -76,16 +114,22 @@ const Store = {
   },
 
   save() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
-      const dot = $('#savedDot');
-      if (dot) {
-        dot.classList.add('flash');
-        setTimeout(() => dot.classList.remove('flash'), 700);
+    const ok = Storage.set(STORAGE_KEY, JSON.stringify(this.state));
+    const dot = $('#savedDot');
+    if (dot) {
+      if (!Storage.available) {
+        dot.textContent = 'not saved';
+        dot.title = 'This browser is blocking storage, so nothing is being kept between reloads. Export a backup before you close the tab.';
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      toast('Could not save — browser storage may be full.');
+      if (!ok) {
+        dot.textContent = 'save failed';
+        dot.title = 'Browser storage is full.';
+        if (!this._warned) { this._warned = true; toast('Could not save — browser storage is full.'); }
+        return;
+      }
+      dot.classList.add('flash');
+      setTimeout(() => dot.classList.remove('flash'), 700);
     }
   },
 
@@ -194,7 +238,7 @@ const Store = {
   },
 
   reset() {
-    localStorage.removeItem(STORAGE_KEY);
+    Storage.remove(STORAGE_KEY);
     this.state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     this.save();
     this.listeners.forEach((l) => l(this.state));

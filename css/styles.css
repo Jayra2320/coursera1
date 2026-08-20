@@ -1,5 +1,13 @@
 /* Fuel — local-first health dashboard. Single stylesheet, no build step. */
 
+/* Theme tokens.
+ *
+ * Three states have to work, not two: an explicit choice stamps
+ * data-theme on <html>, and the default "follow the system" setting stamps
+ * nothing at all — so the dark palette needs both a prefers-color-scheme
+ * block and a [data-theme="dark"] block. Every component reads tokens only;
+ * no colour is ever declared solely inside a theme block. */
+
 :root {
   --bg: #f6f7f9;
   --panel: #ffffff;
@@ -17,13 +25,38 @@
   --protein: #2f6fb5;
   --carbs: #c88a1e;
   --fat: #8b5cc7;
+  --shadow: 0 1px 2px rgba(16, 18, 24, .06), 0 8px 24px rgba(16, 18, 24, .05);
+
   --radius: 14px;
   --radius-sm: 9px;
-  --shadow: 0 1px 2px rgba(16, 18, 24, .06), 0 8px 24px rgba(16, 18, 24, .05);
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --display: "Fraunces", Iowan Old Style, Palatino, Georgia, serif;
+  --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-html[data-theme="dark"] {
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1115;
+    --panel: #171a20;
+    --panel-2: #1e222a;
+    --ink: #e9ecf1;
+    --ink-2: #a4abb9;
+    --ink-3: #737b8b;
+    --line: #272c35;
+    --accent: #3ea884;
+    --accent-ink: #08130f;
+    --accent-soft: #16302a;
+    --warn: #d9974a;
+    --warn-soft: #2f2416;
+    --danger: #e0736d;
+    --protein: #6aa6e8;
+    --carbs: #e0b45c;
+    --fat: #b393e8;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px rgba(0, 0, 0, .35);
+  }
+}
+
+:root[data-theme="dark"] {
   --bg: #0f1115;
   --panel: #171a20;
   --panel-2: #1e222a;
@@ -35,7 +68,7 @@ html[data-theme="dark"] {
   --accent-ink: #08130f;
   --accent-soft: #16302a;
   --warn: #d9974a;
-  --warn-soft: #33261629;
+  --warn-soft: #2f2416;
   --danger: #e0736d;
   --protein: #6aa6e8;
   --carbs: #e0b45c;
@@ -49,14 +82,15 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, system-ui, sans-serif;
+  font: 15px/1.55 var(--sans);
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4 { margin: 0; font-weight: 650; letter-spacing: -.01em; }
-h1 { font-size: 24px; }
-h2 { font-size: 18px; }
-h3 { font-size: 15px; }
+h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -.005em; text-wrap: balance; }
+h1 { font-family: var(--display); font-size: 27px; font-weight: 600; letter-spacing: -.015em; }
+h2 { font-family: var(--display); font-size: 19px; font-weight: 600; }
+h3 { font-size: 15px; font-weight: 600; }
+.brand strong { font-family: var(--display); }
 p { margin: 0 0 10px; }
 a { color: var(--accent); }
 small { font-size: 12px; }
@@ -188,7 +222,7 @@ fieldset { border: 0; padding: 0; margin: 0 0 8px; }
 .divider { height: 1px; background: var(--line); margin: 14px -18px; }
 .empty { text-align: center; padding: 34px 20px; color: var(--ink-3); }
 
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
 th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); padding: 0 8px 6px; font-weight: 600; }
 td { padding: 8px; border-top: 1px solid var(--line); vertical-align: top; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -197,7 +231,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
 .stat .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); font-weight: 600; }
-.stat .v { font-size: 26px; font-weight: 660; letter-spacing: -.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.stat .v { font-family: var(--display); font-size: 27px; font-weight: 600; letter-spacing: -.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
 .stat .v small { font-size: 13px; font-weight: 500; color: var(--ink-3); margin-left: 2px; }
 .stat .sub { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
 
@@ -303,6 +337,12 @@ dialog::backdrop { background: rgba(10, 12, 16, .45); }
 
 .callout { background: var(--panel-2); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13.5px; color: var(--ink-2); }
 .callout.warn { border-left-color: var(--warn); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
 
 .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
