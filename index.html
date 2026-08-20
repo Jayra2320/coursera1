@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuel — personal health, meals &amp; groceries</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥗</text></svg>">
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">🥗</span>
+      <div>
+        <strong>Fuel</strong>
+        <small id="brandSub">Newcastle, NSW</small>
+      </div>
+    </div>
+
+    <nav id="nav">
+      <button class="nav-item" data-view="dashboard"><span>◉</span> Dashboard</button>
+      <button class="nav-item" data-view="assistant"><span>✦</span> Assistant</button>
+      <button class="nav-item" data-view="plan"><span>▤</span> Meal plan</button>
+      <button class="nav-item" data-view="log"><span>✎</span> Food log</button>
+      <button class="nav-item" data-view="workouts"><span>▲</span> Workouts</button>
+      <button class="nav-item" data-view="groceries"><span>⛬</span> Groceries</button>
+      <button class="nav-item" data-view="profile"><span>☰</span> Profile</button>
+      <button class="nav-item" data-view="settings"><span>⚙</span> Settings</button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="ghost small" id="themeToggle">◐ Theme</button>
+      <span class="saved-dot" id="savedDot" title="All changes saved locally">saved</span>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="view" id="view"></div>
+  </main>
+
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<dialog id="modal">
+  <form method="dialog" class="modal-body" id="modalBody"></form>
+</dialog>
+
+<script src="js/util.js"></script>
+<script src="js/foods.js"></script>
+<script src="js/recipes.js"></script>
+<script src="js/health.js"></script>
+<script src="js/store.js"></script>
+<script src="js/planner.js"></script>
+<script src="js/workouts.js"></script>
+<script src="js/grocery.js"></script>
+<script src="js/assistant.js"></script>
+<script src="js/views.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
